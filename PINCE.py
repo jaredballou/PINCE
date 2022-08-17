@@ -462,6 +462,7 @@ class MainForm(QMainWindow, MainWindow):
         self.pushButton_RefreshAdressTable.clicked.connect(self.update_address_table)
         self.pushButton_CopyToAddressTable.clicked.connect(self.copy_to_address_table)
         self.pushButton_CleanAddressTable.clicked.connect(self.delete_address_table_contents)
+        self.pushButton_ApplyOffset.clicked.connect(self.pushButton_ApplyOffset_clicked)
         self.tableWidget_valuesearchtable.cellDoubleClicked.connect(
             self.tableWidget_valuesearchtable_cell_double_clicked)
         self.treeWidget_AddressTable.itemClicked.connect(self.treeWidget_AddressTable_item_clicked)
@@ -481,6 +482,8 @@ class MainForm(QMainWindow, MainWindow):
         self.pushButton_Wiki.setIcon(QIcon(QPixmap(icons_directory + "/book_open.png")))
         self.pushButton_About.setIcon(QIcon(QPixmap(icons_directory + "/information.png")))
         self.auto_attach()
+        if "PINCE_LOAD_TABLE" in os.environ and os.environ["PINCE_LOAD_TABLE"] != "":
+           self.open_address_table_file([os.environ["PINCE_LOAD_TABLE"]])
 
     def set_default_settings(self):
         self.settings.beginGroup("General")
@@ -648,6 +651,8 @@ class MainForm(QMainWindow, MainWindow):
         browse_region = menu.addAction("Browse this memory region[Ctrl+B]")
         disassemble = menu.addAction("Disassemble this address[Ctrl+D]")
         menu.addSeparator()
+        applyoffset = menu.addAction("Apply Offset")
+        menu.addSeparator()
         cut_record = menu.addAction("Cut selected records[Ctrl+X]")
         copy_record = menu.addAction("Copy selected records[Ctrl+C]")
         cut_record_recursively = menu.addAction("Cut selected records (recursive)[X]")
@@ -697,6 +702,7 @@ class MainForm(QMainWindow, MainWindow):
             freeze_dec: lambda: self.change_freeze_type(type_defs.FREEZE_TYPE.DECREMENT),
             browse_region: self.browse_region_for_selected_row,
             disassemble: self.disassemble_selected_row,
+            applyoffset: self.apply_offset_records,
             cut_record: self.cut_selected_records,
             copy_record: self.copy_selected_records,
             cut_record_recursively: self.cut_selected_records_recursively,
@@ -775,6 +781,20 @@ class MainForm(QMainWindow, MainWindow):
         # Flat cut, does not preserve structure
         self.copy_selected_records()
         self.delete_selected_records()
+
+    def apply_offset_records(self):
+        for row in self.treeWidget_AddressTable.selectedItems():
+            address = row.data(ADDR_COL, Qt.UserRole)
+            value_type = row.data(TYPE_COL, Qt.UserRole)
+            offset = int(self.lineEdit_Offset.text(),16)
+            shifted_address = hex(int(address,16) + offset)
+            #hex(address + offset)
+            print(address)
+            print(row.data(ADDR_COL, Qt.UserRole))
+            print(self.lineEdit_Offset.text())
+            print(shifted_address)
+            row.setData(ADDR_COL, Qt.UserRole, shifted_address)
+            row.setText(ADDR_COL,shifted_address)
 
     def copy_selected_records(self):
         # Flat copy, does not preserve structure
@@ -1174,6 +1194,9 @@ class MainForm(QMainWindow, MainWindow):
                                                   "PINCE Cheat Table (*.pct);;All files (*)")[0]
         if not file_paths:
             return
+        self.open_address_table_file(file_paths)
+
+    def open_address_table_file(self, file_paths):
         if self.treeWidget_AddressTable.topLevelItemCount() > 0:
             if InputDialogForm(item_list=[("Clear existing address table?",)]).exec_():
                 self.treeWidget_AddressTable.clear()
@@ -1252,6 +1275,39 @@ class MainForm(QMainWindow, MainWindow):
             i = i + 1
             if i % 3 == 0:
                 self.add_entry_to_addresstable("", row.text(), row.data(Qt.UserRole)[0], length)
+
+    def pushButton_ApplyOffset_clicked(self):
+        print("apply offset")
+        if GDB_Engine.currentpid == -1 or self.treeWidget_AddressTable.topLevelItemCount() == 0:
+            return
+        it = QTreeWidgetItemIterator(self.treeWidget_AddressTable)
+        mem_handle = GDB_Engine.memory_handle()
+        address_expr_list = []
+        rows = []
+        while True:
+            row = it.value()
+            if not row:
+                break
+            it += 1
+            address_expr_list.append(row.data(ADDR_COL, Qt.UserRole))
+            rows.append(row)
+        try:
+            address_list = [item.address for item in GDB_Engine.examine_expressions(address_expr_list)]
+        except type_defs.InferiorRunningException:
+            address_list = address_expr_list
+        for index, row in enumerate(rows):
+            value_type = row.data(TYPE_COL, Qt.UserRole)
+            address = address_list[index]
+            offset = int(self.lineEdit_Offset.text(),16)
+            shifted_address = hex(int(address,16) - offset)
+            #hex(address + offset)
+            print(address)
+            print(row.data(ADDR_COL, Qt.UserRole))
+            print(self.lineEdit_Offset.text())
+            print(shifted_address)
+            row.setData(ADDR_COL, Qt.UserRole, shifted_address)
+            row.setText(ADDR_COL,shifted_address)
+
 
     def on_inferior_exit(self):
         if GDB_Engine.currentpid == -1:
