@@ -63,6 +63,11 @@
         <string>Value</string>
        </property>
       </column>
+      <column>
+       <property name="text">
+        <string>Region</string>
+       </property>
+      </column>
      </widget>
     </item>
     <item row="2" column="0">

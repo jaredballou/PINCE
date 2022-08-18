@@ -171,6 +171,7 @@ DESC_COL = 1  # Description
 ADDR_COL = 2  # Address
 TYPE_COL = 3  # Type
 VALUE_COL = 4  # Value
+REGION_COL = 5  # Region
 
 # represents the index of columns in search results table
 SEARCH_TABLE_ADDRESS_COL = 0
@@ -372,6 +373,7 @@ class MainForm(QMainWindow, MainWindow):
         self.treeWidget_AddressTable.setColumnWidth(DESC_COL, 150)
         self.treeWidget_AddressTable.setColumnWidth(ADDR_COL, 150)
         self.treeWidget_AddressTable.setColumnWidth(TYPE_COL, 150)
+        self.treeWidget_AddressTable.setColumnWidth(VALUE_COL, 150)
         self.tableWidget_valuesearchtable.setColumnWidth(SEARCH_TABLE_ADDRESS_COL, 110)
         self.tableWidget_valuesearchtable.setColumnWidth(SEARCH_TABLE_VALUE_COL, 80)
         app.setOrganizationName("PINCE")
@@ -652,6 +654,7 @@ class MainForm(QMainWindow, MainWindow):
         disassemble = menu.addAction("Disassemble this address[Ctrl+D]")
         menu.addSeparator()
         applyoffset = menu.addAction("Apply Offset")
+        getregion = menu.addAction("Get memory region")
         menu.addSeparator()
         cut_record = menu.addAction("Cut selected records[Ctrl+X]")
         copy_record = menu.addAction("Copy selected records[Ctrl+C]")
@@ -703,6 +706,7 @@ class MainForm(QMainWindow, MainWindow):
             browse_region: self.browse_region_for_selected_row,
             disassemble: self.disassemble_selected_row,
             applyoffset: self.apply_offset_records,
+            getregion: self.get_region_record,
             cut_record: self.cut_selected_records,
             copy_record: self.copy_selected_records,
             cut_record_recursively: self.cut_selected_records_recursively,
@@ -781,6 +785,16 @@ class MainForm(QMainWindow, MainWindow):
         # Flat cut, does not preserve structure
         self.copy_selected_records()
         self.delete_selected_records()
+
+    def get_region_record(self):
+        for row in self.treeWidget_AddressTable.selectedItems():
+            address = row.data(ADDR_COL, Qt.UserRole)
+            information = SysUtils.get_region_info(GDB_Engine.currentpid, int(address,16))
+            if information:
+                QMessageBox.information(self, "Region Information", "Region Information:\n" + str(information))
+            else:
+                QMessageBox.information(self, "Region Information", "No region information found for this address")
+            print(address)
 
     def apply_offset_records(self):
         for row in self.treeWidget_AddressTable.selectedItems():
@@ -1108,7 +1122,7 @@ class MainForm(QMainWindow, MainWindow):
     def pushButton_NextScan_clicked(self):
         global ProgressRun
         search_for = self.validate_search(self.lineEdit_Scan.text(), self.lineEdit_Scan2.text())
-
+        print(search_for)
         # ProgressBar
         global threadpool
         threadpool.start(Worker(self.update_progress_bar))
@@ -1124,6 +1138,9 @@ class MainForm(QMainWindow, MainWindow):
         current_type = self.comboBox_ValueType.currentData(Qt.UserRole)
         length = self._scan_to_length(current_type)
         mem_handle = GDB_Engine.memory_handle()
+        #add two input boxes for upper and lower boundary addresses
+
+
         for n, address, offset, region_type, val, result_type in matches:
             n = int(n)
             address = "0x" + address
@@ -1540,6 +1557,11 @@ class MainForm(QMainWindow, MainWindow):
         row.setData(TYPE_COL, Qt.UserRole, value_type)
         row.setText(TYPE_COL, value_type.text())
         row.setText(VALUE_COL, "" if value is None else str(value))
+        try:
+            region = SysUtils.get_region_info(GDB_Engine.currentpid, int(address,16)).region
+            row.setText(REGION_COL, "{} {} {}".format(region.path, region.addr, region.size))
+        except:
+            pass
 
     # Returns the column values of the given row
     def read_address_table_entries(self, row, serialize=False):

@@ -309,6 +309,7 @@ class Ui_MainWindow(object):
         self.treeWidget_AddressTable.headerItem().setText(2, _translate("MainWindow", "Address"))
         self.treeWidget_AddressTable.headerItem().setText(3, _translate("MainWindow", "Type"))
         self.treeWidget_AddressTable.headerItem().setText(4, _translate("MainWindow", "Value"))
+        self.treeWidget_AddressTable.headerItem().setText(5, _translate("MainWindow", "Region"))
         self.pushButton_MemoryView.setText(_translate("MainWindow", "Memory View"))
         self.pushButton_CopyToAddressTable.setToolTip(_translate("MainWindow", "Copy selected items to the address table"))
         self.pushButton_CleanAddressTable.setToolTip(_translate("MainWindow", "Erase all the table contents"))
