@@ -8,7 +8,4 @@ Stuff I am adding:
 * [X] Command line and environment variable support for attaching to process and opening table (TODO: only partly done)
 * [ ] Configurable value displays, i.e. rounding decimals or how much of a string to display
 * [ ] Relative address logic: Add "@parent" and "@previous" tags to be able to make relative entries, so "@parent+8E" would evaluate out to the parent address plus 8E. Needs a bit of definition around cases.
-* [ ]
-* [ ]
-* [ ]
 
