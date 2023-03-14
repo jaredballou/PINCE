@@ -397,7 +397,7 @@ def save_file(data, file_path, save_method="json"):
     if save_method == "json":
         try:
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            json.dump(data, open(file_path, "w"))
+            json.dump(data, open(file_path, "w"), indent=4)
             return True
         except Exception as e:
             print("Encountered an exception while dumping the data\n", e)

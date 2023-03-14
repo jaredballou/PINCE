@@ -18,7 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # IMPORTANT: Any constant involving only PINCE.py should be declared in PINCE.py
 
-import collections.abc, queue, sys
+import collections.abc
+import queue
+import sys
 
 
 class CONST_TIME:
@@ -30,8 +32,10 @@ class PATHS:
 
 
 class IPC_PATHS:
-    PINCE_IPC_PATH = "/dev/shm/PINCE-connection/"  # Use SysUtils.get_PINCE_IPC_directory()
-    IPC_FROM_PINCE_PATH = "/from_PINCE_file"  # Use SysUtils.get_IPC_from_PINCE_file()
+    # Use SysUtils.get_PINCE_IPC_directory()
+    PINCE_IPC_PATH = "/dev/shm/PINCE-connection/"
+    # Use SysUtils.get_IPC_from_PINCE_file()
+    IPC_FROM_PINCE_PATH = "/from_PINCE_file"
     IPC_TO_PINCE_PATH = "/to_PINCE_file"  # Use SysUtils.get_IPC_to_PINCE_file()
 
 
@@ -54,7 +58,7 @@ class USER_PATHS:
     @staticmethod
     def get_init_files():
         return USER_PATHS.GDBINIT_PATH, USER_PATHS.GDBINIT_AA_PATH, USER_PATHS.PINCEINIT_PATH, \
-               USER_PATHS.PINCEINIT_AA_PATH
+            USER_PATHS.PINCEINIT_AA_PATH
 
 
 class INFERIOR_STATUS:
@@ -132,7 +136,8 @@ class TOGGLE_ATTACH:
 
 
 class REGISTERS:
-    GENERAL_32 = ["eax", "ebx", "ecx", "edx", "esi", "edi", "ebp", "esp", "eip"]
+    GENERAL_32 = ["eax", "ebx", "ecx", "edx",
+                  "esi", "edi", "ebp", "esp", "eip"]
     GENERAL_64 = ["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "rip", "r8", "r9", "r10", "r11", "r12",
                   "r13", "r14", "r15"]
     SEGMENT = ["cs", "ss", "ds", "es", "fs", "gs"]
@@ -175,6 +180,9 @@ class VALUE_INDEX:
 
     INDEX_AOB = 10  # Array of Bytes
 
+    INDEX_STRUCT = 11
+    INDEX_LOOKUP_TABLE = 12
+
     @staticmethod
     def is_integer(value_index):
         return VALUE_INDEX.INDEX_INT8 <= value_index <= VALUE_INDEX.INDEX_INT64
@@ -186,7 +194,7 @@ class VALUE_INDEX:
     @staticmethod
     def has_length(value_index):
         return VALUE_INDEX.INDEX_STRING_ASCII <= value_index <= VALUE_INDEX.INDEX_STRING_UTF32 or \
-               value_index == VALUE_INDEX.INDEX_AOB
+            value_index == VALUE_INDEX.INDEX_AOB
 
 
 class SCAN_INDEX:
@@ -201,6 +209,8 @@ class SCAN_INDEX:
     INDEX_ANY = 8
     INDEX_STRING = 9
     INDEX_AOB = 10  # Array of Bytes
+    INDEX_STRUCT = 11
+    INDEX_LOOKUP_TABLE = 12
 
 
 on_hit_to_text_dict = {
@@ -222,7 +232,9 @@ index_to_text_dict = collections.OrderedDict([
     (VALUE_INDEX.INDEX_STRING_UTF8, "String_UTF8"),
     (VALUE_INDEX.INDEX_STRING_UTF16, "String_UTF16"),
     (VALUE_INDEX.INDEX_STRING_UTF32, "String_UTF32"),
-    (VALUE_INDEX.INDEX_AOB, "Array of Bytes")
+    (VALUE_INDEX.INDEX_AOB, "Array of Bytes"),
+    (VALUE_INDEX.INDEX_STRUCT, "Struct"),
+    (VALUE_INDEX.INDEX_LOOKUP_TABLE, "Lookup Table")
 ])
 
 text_to_index_dict = collections.OrderedDict()
@@ -260,7 +272,9 @@ scan_index_to_text_dict = collections.OrderedDict([
     (SCAN_INDEX.INDEX_FLOAT64, "Float64"),
     (SCAN_INDEX.INDEX_ANY, "Any(int, float)"),
     (SCAN_INDEX.INDEX_STRING, "String"),
-    (VALUE_INDEX.INDEX_AOB, "Array of Bytes")
+    (SCAN_INDEX.INDEX_AOB, "Array of Bytes"),
+    (SCAN_INDEX.INDEX_STRUCT, "Struct"),
+    (SCAN_INDEX.INDEX_LOOKUP_TABLE, "Lookup Table")
 ])
 
 # Used in scan_data_type option of scanmem
@@ -275,7 +289,7 @@ scan_index_to_scanmem_dict = collections.OrderedDict([
     (SCAN_INDEX.INDEX_FLOAT64, "float64"),
     (SCAN_INDEX.INDEX_ANY, "number"),
     (SCAN_INDEX.INDEX_STRING, "string"),
-    (VALUE_INDEX.INDEX_AOB, "bytearray")
+    (SCAN_INDEX.INDEX_AOB, "bytearray")
 ])
 
 
@@ -354,7 +368,9 @@ index_to_valuetype_dict = {
     VALUE_INDEX.INDEX_STRING_UTF8: [None, None],
     VALUE_INDEX.INDEX_STRING_UTF16: [None, None],
     VALUE_INDEX.INDEX_STRING_UTF32: [None, None],
-    VALUE_INDEX.INDEX_AOB: [None, None]
+    VALUE_INDEX.INDEX_AOB: [None, None],
+    VALUE_INDEX.INDEX_STRUCT: [None, None],
+    VALUE_INDEX.INDEX_LOOKUP_TABLE: [None, None]
 }
 
 # Check ScriptUtils for an exemplary usage
@@ -394,13 +410,16 @@ tuple_breakpoint_info = collections.namedtuple("tuple_breakpoint_info", "number 
                                                 disp enabled address size on_hit hit_count enable_count condition")
 
 # start, end-->int, region-->psutil.Process.memory_maps()[item]
-tuple_region_info = collections.namedtuple("tuple_region_info", "start end region")
+tuple_region_info = collections.namedtuple(
+    "tuple_region_info", "start end region")
 
 # all fields-->str/None
-tuple_examine_expression = collections.namedtuple("tuple_examine_expression", "all address symbol")
+tuple_examine_expression = collections.namedtuple(
+    "tuple_examine_expression", "all address symbol")
 
 # all fields-->bool
-gdb_output_mode = collections.namedtuple("gdb_output_mode", "async_output command_output command_info")
+gdb_output_mode = collections.namedtuple(
+    "gdb_output_mode", "async_output command_output command_info")
 
 
 class InferiorRunningException(Exception):
