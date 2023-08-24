@@ -635,6 +635,8 @@ class MainForm(QMainWindow, MainWindow):
         edit_address = edit_menu.addAction("Address[Ctrl+Alt+Enter]")
         edit_type = edit_menu.addAction("Type[Alt+Enter]")
         edit_value = edit_menu.addAction("Value[Enter]")
+        edit_offset = edit_menu.addAction("Offset[Shift+Enter]")
+
         show_hex = menu.addAction("Show as hexadecimal")
         show_dec = menu.addAction("Show as decimal")
         show_unsigned = menu.addAction("Show as unsigned")
@@ -687,6 +689,7 @@ class MainForm(QMainWindow, MainWindow):
             edit_address: self.treeWidget_AddressTable_edit_address,
             edit_type: self.treeWidget_AddressTable_edit_type,
             edit_value: self.treeWidget_AddressTable_edit_value,
+            edit_offset: self.treeWidget_AddressTable_edit_offset,
             show_hex: lambda: self.treeWidget_AddressTable_change_repr(type_defs.VALUE_REPR.HEX),
             show_dec: lambda: self.treeWidget_AddressTable_change_repr(type_defs.VALUE_REPR.UNSIGNED),
             show_unsigned: lambda: self.treeWidget_AddressTable_change_repr(type_defs.VALUE_REPR.UNSIGNED),
@@ -883,6 +886,7 @@ class MainForm(QMainWindow, MainWindow):
             ((Qt.NoModifier, Qt.Key_Return), self.treeWidget_AddressTable_edit_value),
             ((Qt.ControlModifier, Qt.Key_Return), self.treeWidget_AddressTable_edit_desc),
             ((Qt.ControlModifier | Qt.AltModifier, Qt.Key_Return), self.treeWidget_AddressTable_edit_address),
+            ((Qt.ShiftModifier, Qt.Key_Return), self.treeWidget_AddressTable_edit_offset),
             ((Qt.AltModifier, Qt.Key_Return), self.treeWidget_AddressTable_edit_type)
         ])
         try:
@@ -1419,6 +1423,25 @@ class MainForm(QMainWindow, MainWindow):
                 frozen.value = new_value
                 row.setData(FROZEN_COL, Qt.UserRole, frozen)
                 GDB_Engine.write_memory(address, value_type.value_index, new_value)
+            self.update_address_table()
+
+    def treeWidget_AddressTable_edit_offset(self):
+        row = GuiUtils.get_current_item(self.treeWidget_AddressTable)
+        if not row:
+            return
+
+        dialog = InputDialogForm(item_list=[("Offset addresses by:",'')])
+        if dialog.exec_():
+            offset_value = dialog.get_values()
+            offset_int = int(offset_value, 16)
+            print(offset_value)
+            print(offset_int)
+            for row in self.treeWidget_AddressTable.selectedItems():
+                desc, address_expr, value_type = self.read_address_table_entries(row)
+                address = row.text(ADDR_COL).strip("P->")
+                address_int = int(address, 16)
+                address_new = hex(address_int + offset_int)
+                self.change_address_table_entries(row, desc, address_new, value_type)
             self.update_address_table()
 
     def treeWidget_AddressTable_edit_desc(self):
