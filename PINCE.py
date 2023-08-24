@@ -128,10 +128,13 @@ class Hotkeys:
     break_hotkey = Hotkey("break_hotkey", "Break the process", "F2")
     continue_hotkey = Hotkey("continue_hotkey", "Continue the process", "F3")
     toggle_attach_hotkey = Hotkey("toggle_attach_hotkey", "Toggle attach/detach", "Shift+F10")
+    next_scan_hotkey = Hotkey("next_scan_hotkey", "Next Scan", "F5")
+    undo_scan_hotkey = Hotkey("undo_scan_hotkey", "Undo Scan", "F6")
+
 
     @staticmethod
     def get_hotkeys():
-        return Hotkeys.pause_hotkey, Hotkeys.break_hotkey, Hotkeys.continue_hotkey, Hotkeys.toggle_attach_hotkey
+        return Hotkeys.pause_hotkey, Hotkeys.break_hotkey, Hotkeys.continue_hotkey, Hotkeys.toggle_attach_hotkey, Hotkeys.next_scan_hotkey, Hotkeys.undo_scan_hotkey
 
 
 code_injection_method = int
@@ -363,7 +366,10 @@ class MainForm(QMainWindow, MainWindow):
             Hotkeys.pause_hotkey: self.pause_hotkey_pressed,
             Hotkeys.break_hotkey: self.break_hotkey_pressed,
             Hotkeys.continue_hotkey: self.continue_hotkey_pressed,
-            Hotkeys.toggle_attach_hotkey: self.toggle_attach_hotkey_pressed
+            Hotkeys.toggle_attach_hotkey: self.toggle_attach_hotkey_pressed,
+            Hotkeys.next_scan_hotkey: self.next_scan_hotkey_pressed,
+            Hotkeys.undo_scan_hotkey: self.undo_scan_hotkey_pressed
+
         }
         for hotkey, func in hotkey_to_func.items():
             hotkey.change_func(func)
@@ -626,6 +632,14 @@ class MainForm(QMainWindow, MainWindow):
             dialog = InputDialogForm(item_list=[(
                 dialog_text + "\n\nGo to Settings->General to disable this dialog",)], buttons=[QDialogButtonBox.Ok])
             dialog.exec_()
+
+    @SysUtils.ignore_exceptions
+    def next_scan_hotkey_pressed(self):
+        self.pushButton_NextScan_clicked()
+
+    @SysUtils.ignore_exceptions
+    def undo_scan_hotkey_pressed(self):
+        pass
 
     def treeWidget_AddressTable_context_menu_event(self, event):
         current_row = GuiUtils.get_current_item(self.treeWidget_AddressTable)
