@@ -1,6 +1,7 @@
 __pycache__/
 .idea/*
 .vscode/*
+scanmem/
 libscanmem.so*
 libpince/libscanmem/*
 *.directory
